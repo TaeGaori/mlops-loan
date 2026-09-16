@@ -85,7 +85,19 @@ class LoanRequest(BaseModel):
                     ...,
                     ge=100,
                     description='대출신청액',
-                    examples=['원리금균등'],    # 상환방식 --> 원금균등, 원리금균등, 만기일시
+                    examples=['3000.0'],    # 상환방식 --> 원금균등, 원리금균등, 만기일시
+    )
+
+    repayment_method: str = Field(
+                    ...,
+                    description='상환방식',
+                    examples=['원리금균등'],
+    )
+
+    loan_purpose: str = Field(
+                    ...,
+                    description='대출목적',
+                    examples=['주택구입'],
     )
 
     loan_period: int = Field(
