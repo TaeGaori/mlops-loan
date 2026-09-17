@@ -134,3 +134,89 @@ class LoanResponse(BaseModel):
                     ...,
                     description='리스크 등급(A, B, C, D)'
     )
+
+
+
+
+
+
+
+
+# ===============================================================================
+# 배치 예측용 스키마 (신규 추가)
+# ===============================================================================
+class BatchLoanRequest(BaseModel):
+    """
+    배치(여러 건 동시에) 대출 심사 요청 스키마.
+
+    requests 필드 하나에 LoanRequest 리스트를 통째로 담는다.
+        리스트를 감싸는 모델을 만드는 이유 --> 리스트를 바로 요청 본문으로 받으면 (list[LoanRequest])
+            FastAPI가 최상위 배열을 검증하는 방식이 까다로워지고ㅡ 나중에 페이지네이션 정보 등
+            다른 필드를 추가하기도 어렵기 때문
+            (그래서 실무에서는 보통 배치 API는 "리스트를 감싸는 객체" 형태로 설계한다.)
+    """
+    requests: list[LoanRequest] = Field(
+                    ...,
+                    min_length=1,
+                    max_length=100,
+                    description = "예측 요청 리스트(최소 1건, 최대 100건)"
+)
+
+class BatchLoanResponse(BaseModel):
+    """
+    배치 대출 심사 응답 스키마
+    """
+    results: list[LoanResponse] = Field(
+                    ...,
+                    description="요청 순서와 1:1로 대응하는 예측 결과 리스트"
+    )
+
+
+
+# ===============================================================================
+# 모델 정보 스키마 (신규 추가)
+# ===============================================================================
+class ModelInfoResponse(BaseModel):
+    model_name: str
+    model_version: str
+    features: list[str]
+    threshold: float
+
+
+# ===============================================================================
+# 요청 추적용 확장 응답 스키마 (신규 추가)
+#   기존 LoanResponse는 다른 곳에서 사용되므로 건드리지 않고, /predict 하나에만
+#   적용할 "확장판"을 별도 클래스로 새로 만든다.
+# ===============================================================================
+class EnhancedLoanResponse(BaseModel):
+    """
+    request_id / timestamp 를 추가해, 운영 중 특정 예측 요청을 축적할 수 있게 한 응답 스키마.
+    """
+    # 요청마다 새로 발급되는 고유 식별자 (UUID)
+    request_id: str = Field(
+                    ...,
+                    description="요청 고유 식별자 (UUID)",
+    )
+
+    # 예측이 실행된 시각. ISO 8601 문자열 (UTC)로 저장해 로그 검섹/정렬을 쉽게 한다.
+    timestamp: str = Field(
+                    ...,
+                    description="예측 수행 시각 (ISO 8601, UTC)",
+    )
+
+    approved: bool = Field(
+                    ...,
+                    description="승인 여부 (True=승인, False=거절)"
+    )
+
+    probability: float = Field(
+                    ...,
+                    ge=0.0,
+                    le=1.0,
+                    description="승인 확률 (0.0~1.0)",
+    )
+
+    risk_grade: str = Field(
+                    ...,
+                    description="리스크 등급 (A, B, C, D)",
+    )
