@@ -86,7 +86,6 @@ jobs:
 
       - name: Build Docker image
         run: | 
-          cd service-a-loan
           docker build -t loan-api:ci-${{ github.sha }} .
 
       # ---컨테이너 실행 + 헬스체크
