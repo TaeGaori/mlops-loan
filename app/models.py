@@ -7,12 +7,12 @@ app/models.py
 3단계 중 2단계 작업
 '''
 
-import os
 import logging
+from pathlib import Path
+from typing import Any
+
 import joblib
 import pandas as pd
-from typing import Any
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class LoanModel:
         self.label_encoders = joblib.load(encoder_path)
         self.feature_names = joblib.load(feature_names_path)
 
-        logging.info('모델 로드 완료!')
+        logger.info('모델 로드 완료!')
 
     # @staticmethod (정적 메서드)
     #   클래스 내부에 정의하지만 인스턴스(self)나 클래스(cls) 정보를 받지 않는 메스드를 만들 떄 사용
@@ -114,7 +114,7 @@ class LoanModel:
             if key in FIELD_TO_COLUMN:
                 korean_key = FIELD_TO_COLUMN[key]   #  ex) 나이
             else:
-                korean_key = key    # ex) age
+                korean_key = FIELD_TO_COLUMN.get(key,key)    # ex) age
             result[korean_key] = value
 
         return result

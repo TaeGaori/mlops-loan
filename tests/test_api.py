@@ -17,9 +17,11 @@ tests/test_api.py
 import uuid
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
+
 from app.main import app
 from app.models import FIELD_TO_COLUMN, LoanModel
 
