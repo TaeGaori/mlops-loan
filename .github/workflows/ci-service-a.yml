@@ -81,35 +81,35 @@ jobs:
     needs: lint-and-test  # 앞의 job(lint-and-test)이  성공했을 대만 이 job을 실행한다.
     runs-on: ubuntu-latest
 
-  steps:
-    - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Build Docker image
-      run: | 
-        cd service-a-loan
-        docker build -t loan-api:ci-${{ github.sha }} .
+      - name: Build Docker image
+        run: | 
+          cd service-a-loan
+          docker build -t loan-api:ci-${{ github.sha }} .
 
-    # ---컨테이너 실행 + 헬스체크
-    #   모델 파일을 읽는 동안 서버가 아직 준비되지 않았을 수 있어서(러너가 느린 날 실패)
-    #   → 2초 간격으로 최대 15번(30초) 재시도하도록 바꿨다.
-    - name: Run container and health check
-      run: |
-        docker run -d -p 8000:8000 --name loan-api-ci loan-api:ci-${{ github.sha }}
+      # ---컨테이너 실행 + 헬스체크
+      #   모델 파일을 읽는 동안 서버가 아직 준비되지 않았을 수 있어서(러너가 느린 날 실패)
+      #   → 2초 간격으로 최대 15번(30초) 재시도하도록 바꿨다.
+      - name: Run container and health check
+        run: |
+          docker run -d -p 8000:8000 --name loan-api-ci loan-api:ci-${{ github.sha }}
 
-        for i in $(seq 1 15); do
-          # -s: 진행 표시 숨김 / -f: HTTP 오류(4xx, 5xx)면 실패로 처리
-          if curl -sf http://localhost:8000/health; then
-            echo ""
-            echo "헬스체크 성공"
-            exit 0
-          fi
-          echo "서버 준비 대기 중... ($i/15)"
-          sleep 2
-        done
+          for i in $(seq 1 15); do
+            # -s: 진행 표시 숨김 / -f: HTTP 오류(4xx, 5xx)면 실패로 처리
+            if curl -sf http://localhost:8000/health; then
+              echo ""
+              echo "헬스체크 성공"
+              exit 0
+            fi
+            echo "서버 준비 대기 중... ($i/15)"
+            sleep 2
+          done
 
-        echo "헬스체크 실패: 컨테이너 로그를 출력합니다."
-        docker logs loan-api-ci
-        exit 1
+          echo "헬스체크 실패: 컨테이너 로그를 출력합니다."
+          docker logs loan-api-ci
+          exit 1
 
 
 
