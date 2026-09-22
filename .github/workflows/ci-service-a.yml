@@ -72,7 +72,7 @@ jobs:
 
       # --6. 테스트 실행 ---
       - name: Run tests
-        run: python -m pytest tests/ -v4
+        run: python -m pytest tests/ -v
         
 
   
